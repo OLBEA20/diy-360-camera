@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "360camera"
+version = "0.1.0"
+description = ""
+authors = ["Olivier Beaulieu <olivier.beaulieu@can-explore.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+opencv-python = "^4.10.0.84"
+numpy = "^2.1.3"
+omnicv = "^1.1.3"
+pytest = "^8.3.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
