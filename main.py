@@ -45,10 +45,10 @@ def get_annulus_filter_image(
 
     return annulus_image
 
-def remove_outer_noise(image, fisheye_radius: int):
+def remove_outer_noise(image, fisheye_radius: int, delX: int, delY: int):
     height, width = image.shape[:2]
     annulus_filter_image = get_annulus_filter_image(
-        height, width, (width//2, height//2), fisheye_radius
+        height, width, (width//2 - delX, height//2 - delY), fisheye_radius
     )
     return cv2.bitwise_and(
         image, image, mask=annulus_filter_image
@@ -72,6 +72,7 @@ FRONT_CAMERA_IMAGES_PATH = "./data/cam1"
 
 
 def blend_images_with_mask(image1, image2, weight=0.5, threshold=10):
+    return cv2.add(image1, image2)
     image1 = image1.astype(np.float32)
     image2 = image2.astype(np.float32)
     
@@ -112,13 +113,13 @@ if __name__ == "__main__":
                 for image_path in os.listdir(REAR_CAMERA_IMAGES_PATH):
                     if image_path.endswith(".jpeg"):
                         fisheye_image = cv2.imread(os.path.join(REAR_CAMERA_IMAGES_PATH, image_path))
-                        equirect_image = cam0_mapper.fisheye_to_equirectangular(remove_outer_noise(fisheye_image, 1205))
+                        equirect_image = cam0_mapper.fisheye_to_equirectangular(remove_outer_noise(fisheye_image, 1205, -19, 5))
                         cv2.imwrite(os.path.join(back_temp_dir, image_path), equirect_image)
 
                 for image_path in os.listdir(FRONT_CAMERA_IMAGES_PATH):
                     if image_path.endswith(".jpeg"):
                         fisheye_image = cv2.imread(os.path.join(FRONT_CAMERA_IMAGES_PATH, image_path))
-                        equirect_image = cam1_mapper.fisheye_to_equirectangular(remove_outer_noise(fisheye_image, 1205))
+                        equirect_image = cam1_mapper.fisheye_to_equirectangular(remove_outer_noise(fisheye_image, 1205, 26, 5))
                         cv2.imwrite(os.path.join(front_temp_dir, image_path), swap_image_halves(equirect_image))
 
                 for path_a, path_b in zip(os.listdir(back_temp_dir), os.listdir(front_temp_dir)):

@@ -4,17 +4,17 @@ import subprocess
 from tempfile import TemporaryDirectory
 from omnicv import fisheyeImgConv
 from queue import Empty
-from typing import Callable, Dict, List, Optional, TypeVar, Generic
+from typing import Dict, List, Optional, TypeVar, Generic
 from dataclasses import dataclass
 from datetime import datetime
 import time
-import logging
 import traceback
 import signal
 import sys
 from enum import Enum
 import os
 import cv2
+from camera360.horizontal_fade import fade_horizontal_edges
 
 from main import (
     FRONT_CAMERA_IMAGES_PATH,
@@ -77,13 +77,14 @@ class TaskQueue:
         signal.signal(signal.SIGINT, self._handle_interrupt)
         signal.signal(signal.SIGTERM, self._handle_interrupt)
 
-
     def start(self):
         """Start the worker processes"""
         print(f"Starting {self.num_workers} workers")
 
         for i in range(self.num_workers):
-            image_convert = ImageProcessor(self.task_queue, self.result_queue, self.stop_event)
+            image_convert = ImageProcessor(
+                self.task_queue, self.result_queue, self.stop_event
+            )
             worker = Process(target=image_convert.process, args=(i,))
             worker.start()
             self.workers.append(worker)
@@ -132,7 +133,7 @@ class TaskQueue:
                     self.tasks[task.id] = task
                 elif message_type == "task_complete":
                     self.tasks[task.id] = task
-                    #print(f"Task {task.id} completed with status {task.status}")
+                    # print(f"Task {task.id} completed with status {task.status}")
 
         except Empty:
             pass
@@ -158,23 +159,23 @@ class ImageProcessor:
 
     def process_image(self, rear_image_path, front_image_path, output_image_path):
         fisheye_image = cv2.imread(rear_image_path)
-        rear_equirect_image = self._cam0_mapper.fisheye_to_equirectangular(
-            remove_outer_noise(fisheye_image, 1205)
-        )
+        rear_equirect_image = fade_horizontal_edges(self._cam0_mapper.fisheye_to_equirectangular(
+            remove_outer_noise(fisheye_image, 1200, -20, 0)
+        ))
 
         fisheye_image = cv2.imread(front_image_path)
         front_equirect_image = swap_image_halves(
-            self._cam1_mapper.fisheye_to_equirectangular(
-                remove_outer_noise(fisheye_image, 1205)
-            )
+            fade_horizontal_edges(self._cam1_mapper.fisheye_to_equirectangular(
+                remove_outer_noise(fisheye_image, 1200, 25, 0)
+            ))
         )
 
         merged = blend_images_with_mask(
-            rear_equirect_image, front_equirect_image, 0.5, 1
+            rear_equirect_image, front_equirect_image, 1, 0
         )
 
         cv2.imwrite(output_image_path, merged)
-    
+
     def process(self, process_id):
         print(f"Worker {process_id} started")
 
@@ -216,7 +217,7 @@ class ImageProcessor:
 
 # Example usage
 if __name__ == "__main__":
-    queue = TaskQueue(12)
+    queue = TaskQueue(10)
     queue.start()
 
     with TemporaryDirectory() as merged_temp_dir:
@@ -253,16 +254,28 @@ if __name__ == "__main__":
             queue.process_results()
 
             # Print results
-            failed_task = [task for task in queue.tasks.values() if task.status == TaskStatus.FAILED]
-            successful_tasks = [task for task in queue.tasks.values() if task.status == TaskStatus.COMPLETED]
-            average_duration = mean((task.completed_at - task.started_at).total_seconds() for task in successful_tasks)
+            failed_task = [
+                task
+                for task in queue.tasks.values()
+                if task.status == TaskStatus.FAILED
+            ]
+            for task in failed_task:
+                print(task.error)
+            successful_tasks = [
+                task
+                for task in queue.tasks.values()
+                if task.status == TaskStatus.COMPLETED
+            ]
+            average_duration = mean(
+                (task.completed_at - task.started_at).total_seconds()
+                for task in successful_tasks
+            )
 
-            print(20*"-")
+            print(20 * "-")
             print(f"Successful Tasks: {len(successful_tasks)}")
             print(f"Failed Tasks: {len(failed_task)}")
             print(f"Mean duration: {average_duration:.2f}s")
-            print(20*"-")
-
+            print(20 * "-")
 
         finally:
             # Clean up
@@ -279,7 +292,7 @@ if __name__ == "__main__":
             "libx264",
             "-pix_fmt",
             "yuv420p",
-            "merged.mp4",
+            "merged-3.mp4",
         ]
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
