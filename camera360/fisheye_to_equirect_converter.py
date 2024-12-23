@@ -1,11 +1,12 @@
 import math
 import cv2
 import numpy as np
-from omnicv import fisheyeImgConv
 
 
 class FishEyeToEquirectConverter:
-    def __init__(self, radius: int, aperture: int, del_x: int, del_y: int, rotation_y: float):
+    def __init__(
+        self, radius: int, aperture: int, del_x: int, del_y: int, rotation_y: float
+    ):
         self._map_x = None
         self._map_y = None
         self._radius = radius
@@ -21,9 +22,7 @@ class FishEyeToEquirectConverter:
         return self._fisheye_to_equirectangular(image, out_shape)
 
     def _fisheye_to_equirectangular(self, source_frame, out_shape):
-        inShape = source_frame.shape[:2]
-
-        in_height, in_width = inShape
+        in_height, in_width = source_frame.shape[:2]
         out_height, out_width = out_shape
 
         self._map_x = np.zeros((out_height, out_width), np.float32)
@@ -80,26 +79,6 @@ class FishEyeToEquirectConverter:
             interpolation=cv2.INTER_LINEAR,
             borderMode=cv2.BORDER_CONSTANT,
         )
-
-
-class FishEyeToEquirectConverterCalibrator:
-    def __init__(self, mapper: fisheyeImgConv):
-        self._mapper = mapper
-
-    def fisheye_to_equirectangular(
-        self, image, aperture, delX, delY, outShape=(960, 1920)
-    ):
-        equirect_image = self._mapper.fisheye2equirect(
-            image,
-            aperture=aperture,
-            delx=delX,
-            dely=delY,
-            radius=1050,
-            edit_mode=True,
-            outShape=outShape,
-        )
-
-        return equirect_image
 
 
 def rotate_around_y(point, angle_degrees):

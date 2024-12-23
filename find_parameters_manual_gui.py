@@ -3,19 +3,9 @@ import cv2
 import sys
 from camera360.fisheye_to_equirect_converter import (
     FishEyeToEquirectConverter,
-    FishEyeToEquirectConverterCalibrator,
 )
-from camera360.horizontal_fade import fade_horizontal_edges
-from main import blend_images_with_mask, swap_image_halves
-from omnicv import fisheyeImgConv
+from main import swap_image_halves
 import numpy as np
-
-cam0_mapper = FishEyeToEquirectConverterCalibrator(
-    fisheyeImgConv("./cam0_fisheye_params.txt")
-)
-cam1_mapper = FishEyeToEquirectConverterCalibrator(
-    fisheyeImgConv("./cam1_fisheye_params.txt")
-)
 
 
 def hard_merge(image1, image2):
@@ -60,38 +50,6 @@ def process_parameters_2(
     )
 
     return hard_merge(rear_equirect_image, front_equirect_image)
-
-
-def process_parameters(
-    rear_del_x,
-    rear_del_y,
-    rear_aperture,
-    front_del_x,
-    front_del_y,
-    front_aperture,
-    out_shape,
-):
-    fisheye_image = cv2.imread(rear_image_path)
-    rear_equirect_image = fade_horizontal_edges(
-        cam0_mapper.fisheye_to_equirectangular(
-            fisheye_image, rear_aperture, rear_del_x, rear_del_y, out_shape
-        )
-    )
-
-    fisheye_image = cv2.imread(front_image_path)
-    front_equirect_image = swap_image_halves(
-        fade_horizontal_edges(
-            cam1_mapper.fisheye_to_equirectangular(
-                fisheye_image,
-                front_aperture,
-                front_del_x,
-                front_del_y,
-                out_shape,
-            )
-        )
-    )
-
-    return blend_images_with_mask(rear_equirect_image, front_equirect_image, 1, 3)
 
 
 def nothing(x):

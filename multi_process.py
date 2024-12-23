@@ -7,10 +7,10 @@ from camera360.image_processor import ImageProcessorFactory
 from camera360.multi_processing.task import TaskStatus
 from camera360.multi_processing.task_queue import TaskQueue
 
-scene_name = "scene4"
+scene_name = "scene1"
 
-REAR_CAMERA_IMAGES_PATH = f"./data/{scene_name}/cam0_clean"
-FRONT_CAMERA_IMAGES_PATH = f"./data/{scene_name}/cam1_clean"
+REAR_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam0_clean"
+FRONT_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam1_clean"
 
 # Example usage
 if __name__ == "__main__":
@@ -24,8 +24,8 @@ if __name__ == "__main__":
                     FRONT_CAMERA_IMAGES_PATH, rear_image_file_name
                 )
                 if (
-                    not rear_image_file_name.endswith(".jpeg")
-                    or not front_image_path.endswith(".jpeg")
+                    not rear_image_file_name.endswith(".jpg")
+                    or not front_image_path.endswith(".jpg")
                     and os.path.exists(front_image_path)
                 ):
                     continue
@@ -81,9 +81,11 @@ if __name__ == "__main__":
         command = [
             "ffmpeg",
             "-framerate",
-            "15",
+            "30",
             "-i",
-            os.path.join(merged_temp_dir, "test%05d.jpeg"),
+            os.path.join(merged_temp_dir, "frame_%05d.jpg"),
+            "-r",
+            "30",
             "-c:v",
             "libx264",
             "-pix_fmt",

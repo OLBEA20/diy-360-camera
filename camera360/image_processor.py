@@ -14,8 +14,8 @@ from main import (
 
 class ImageProcessor:
     def __init__(self, task_queue: Queue, result_queue: Queue, stop_event):
-        self._cam0_mapper = FishEyeToEquirectConverter(1050, 199, 4, -10, -2.25)
-        self._cam1_mapper = FishEyeToEquirectConverter(1050, 197, 4, -10, 0.5)
+        self._cam0_mapper = FishEyeToEquirectConverter(1510, 188, 0, 0, -1.1)
+        self._cam1_mapper = FishEyeToEquirectConverter(1510, 188, 0, 0, 0)
         self._task_queue = task_queue
         self._result_queue = result_queue
         self._stop_event = stop_event
@@ -56,12 +56,12 @@ class ImageProcessor:
     def _process_image(self, rear_image_path, front_image_path, output_image_path):
         fisheye_image = cv2.imread(rear_image_path)
         rear_equirect_image = fade_horizontal_edges(
-            self._cam0_mapper.fisheye_to_equirectangular(fisheye_image, (1944, 3888))
+            self._cam0_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080))
         )
 
         fisheye_image = cv2.imread(front_image_path)
         front_equirect_image = fade_horizontal_edges(
-            self._cam1_mapper.fisheye_to_equirectangular(fisheye_image, (1944, 3888))
+            self._cam1_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080))
         )
 
         def merge_equirect_images(rear, front):
