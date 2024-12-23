@@ -15,5 +15,8 @@ OmniCV-Lib/
 data/
 calib/
 *.mp4
+*.mp4_original
 *.jpeg
 *.jpg
+*.txt
+omnicv
