@@ -4,7 +4,7 @@ import sys
 from camera360.fisheye_to_equirect_converter import (
     FishEyeToEquirectConverter,
 )
-from main import swap_image_halves
+from camera360.swap_image_halves import swap_image_halves
 import numpy as np
 
 
@@ -16,22 +16,23 @@ def hard_merge(image1, image2):
     return np.hstack((left, middle, right))
 
 
-def process_parameters_2(
+def process_parameters(
     rear_radius,
     rear_del_x,
     rear_del_y,
     rear_aperture,
-    rear_rotation_y,
+    rear_rotation,
     front_radius,
     front_del_x,
     front_del_y,
     front_aperture,
+    front_rotation,
     out_shape,
 ):
     fisheye_image = cv2.imread(rear_image_path)
 
     cam0_mapper = FishEyeToEquirectConverter(
-        rear_radius, rear_aperture, rear_del_x, rear_del_y, rear_rotation_y
+        rear_radius, rear_aperture, rear_del_x, rear_del_y, rear_rotation
     )
     rear_equirect_image = cam0_mapper.fisheye_to_equirectangular(
         fisheye_image,
@@ -40,7 +41,7 @@ def process_parameters_2(
 
     fisheye_image = cv2.imread(front_image_path)
     cam1_mapper = FishEyeToEquirectConverter(
-        front_radius, front_aperture, front_del_x, front_del_y, 0
+        front_radius, front_aperture, front_del_x, front_del_y, front_rotation
     )
     front_equirect_image = swap_image_halves(
         cam1_mapper.fisheye_to_equirectangular(
@@ -56,7 +57,8 @@ def nothing(x):
     pass
 
 
-WINDOW_NAME = "image"
+TRACKBAR_WINDOW = "image"
+IMAGE_WINDOW = "output image"
 rear_image_path = sys.argv[1]
 front_image_path = sys.argv[2]
 REAR_RADIUS = None
@@ -64,57 +66,66 @@ FRONT_RADIUS = None
 
 # Example of using the converter class
 frame = cv2.imread(rear_image_path)
-cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-cv2.resizeWindow(WINDOW_NAME, 800, 800)
+cv2.namedWindow(TRACKBAR_WINDOW, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(TRACKBAR_WINDOW, 800, 800)
 height, width = frame.shape[:2]
-cv2.createTrackbar("rear_radius", WINDOW_NAME, 1050, width, nothing)
-cv2.createTrackbar("rear_Cx", WINDOW_NAME, width // 2, width, nothing)
-cv2.createTrackbar("rear_Cy", WINDOW_NAME, height // 2, width, nothing)
+cv2.createTrackbar("rear_radius", TRACKBAR_WINDOW, 1050, width, nothing)
+cv2.createTrackbar("rear_Cx", TRACKBAR_WINDOW, width // 2, width, nothing)
+cv2.createTrackbar("rear_Cy", TRACKBAR_WINDOW, height // 2, width, nothing)
 
 while True:
     if True:
         frame = cv2.imread(rear_image_path)
-        rear_radius = cv2.getTrackbarPos("rear_radius", WINDOW_NAME)
-        rear_Cx = cv2.getTrackbarPos("rear_Cx", WINDOW_NAME)
-        rear_Cy = cv2.getTrackbarPos("rear_Cy", WINDOW_NAME)
+        rear_radius = cv2.getTrackbarPos("rear_radius", TRACKBAR_WINDOW)
+        rear_Cx = cv2.getTrackbarPos("rear_Cx", TRACKBAR_WINDOW)
+        rear_Cy = cv2.getTrackbarPos("rear_Cy", TRACKBAR_WINDOW)
         frame = cv2.circle(frame, (rear_Cx, rear_Cy), rear_radius, (0, 200, 0), 2)
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(TRACKBAR_WINDOW, frame)
         if cv2.waitKey(1) & 0xFF == 27:
             REAR_RADIUS = rear_radius
             cv2.destroyAllWindows()
             break
 
 frame = cv2.imread(front_image_path)
-cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-cv2.resizeWindow(WINDOW_NAME, 800, 800)
-cv2.createTrackbar("front_radius", WINDOW_NAME, 1050, width, nothing)
-cv2.createTrackbar("front_Cx", WINDOW_NAME, width // 2, width, nothing)
-cv2.createTrackbar("front_Cy", WINDOW_NAME, height // 2, width, nothing)
+cv2.namedWindow(TRACKBAR_WINDOW, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(TRACKBAR_WINDOW, 800, 800)
+cv2.createTrackbar("front_radius", TRACKBAR_WINDOW, 1050, width, nothing)
+cv2.createTrackbar("front_Cx", TRACKBAR_WINDOW, width // 2, width, nothing)
+cv2.createTrackbar("front_Cy", TRACKBAR_WINDOW, height // 2, width, nothing)
 
 while True:
     if True:
         frame = cv2.imread(front_image_path)
-        front_radius = cv2.getTrackbarPos("front_radius", WINDOW_NAME)
-        front_Cx = cv2.getTrackbarPos("front_Cx", WINDOW_NAME)
-        front_Cy = cv2.getTrackbarPos("front_Cy", WINDOW_NAME)
+        front_radius = cv2.getTrackbarPos("front_radius", TRACKBAR_WINDOW)
+        front_Cx = cv2.getTrackbarPos("front_Cx", TRACKBAR_WINDOW)
+        front_Cy = cv2.getTrackbarPos("front_Cy", TRACKBAR_WINDOW)
         frame = cv2.circle(frame, (front_Cx, front_Cy), front_radius, (0, 200, 0), 2)
-        cv2.imshow(WINDOW_NAME, frame)
+        cv2.imshow(TRACKBAR_WINDOW, frame)
         if cv2.waitKey(1) & 0xFF == 27:
             FRONT_RADIUS = front_radius
             cv2.destroyAllWindows()
             break
 
-WINDOW_NAME = "set aperture"
+TRACKBAR_WINDOW = "set aperture"
 
-cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-cv2.resizeWindow(WINDOW_NAME, 600, 1200)
-cv2.createTrackbar("rear aperture", WINDOW_NAME, 196, 1000, nothing)
-cv2.createTrackbar("rear del Cx", WINDOW_NAME, 500, 1000, nothing)
-cv2.createTrackbar("rear del Cy", WINDOW_NAME, 500, 1000, nothing)
-cv2.createTrackbar("rotation y", WINDOW_NAME, 50, 100, nothing)
-cv2.createTrackbar("front aperture", WINDOW_NAME, 196, 1000, nothing)
-cv2.createTrackbar("front del Cx", WINDOW_NAME, 500, 1000, nothing)
-cv2.createTrackbar("front del Cy", WINDOW_NAME, 500, 1000, nothing)
+cv2.namedWindow(TRACKBAR_WINDOW, cv2.WINDOW_NORMAL)
+cv2.namedWindow(IMAGE_WINDOW, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(TRACKBAR_WINDOW, 600, 1200)
+cv2.resizeWindow(IMAGE_WINDOW, 600, 1200)
+
+cv2.createTrackbar("rear aperture", TRACKBAR_WINDOW, 196, 1000, nothing)
+cv2.createTrackbar("rear del Cx", TRACKBAR_WINDOW, 500, 1000, nothing)
+cv2.createTrackbar("rear del Cy", TRACKBAR_WINDOW, 500, 1000, nothing)
+cv2.createTrackbar("rear rotation x", TRACKBAR_WINDOW, 50, 100, nothing)
+cv2.createTrackbar("rear rotation y", TRACKBAR_WINDOW, 50, 100, nothing)
+cv2.createTrackbar("rear rotation z", TRACKBAR_WINDOW, 50, 100, nothing)
+
+cv2.createTrackbar("front aperture", TRACKBAR_WINDOW, 196, 1000, nothing)
+cv2.createTrackbar("front del Cx", TRACKBAR_WINDOW, 500, 1000, nothing)
+cv2.createTrackbar("front del Cy", TRACKBAR_WINDOW, 500, 1000, nothing)
+cv2.createTrackbar("front rotation x", TRACKBAR_WINDOW, 50, 100, nothing)
+cv2.createTrackbar("front rotation y", TRACKBAR_WINDOW, 50, 100, nothing)
+cv2.createTrackbar("front rotation z", TRACKBAR_WINDOW, 50, 100, nothing)
 
 # Example of using the converter class
 frame = cv2.imread(rear_image_path)
@@ -128,24 +139,37 @@ inShape = frame.shape[:2]
 
 while True:
     if True:
-        rear_aperture = cv2.getTrackbarPos("rear aperture", WINDOW_NAME)
-        rear_delx = cv2.getTrackbarPos("rear del Cx", WINDOW_NAME) - 500
-        rear_dely = cv2.getTrackbarPos("rear del Cy", WINDOW_NAME) - 500
-        rotation_y = (cv2.getTrackbarPos("rotation y", WINDOW_NAME) - 50) / 10
-        front_aperture = cv2.getTrackbarPos("front aperture", WINDOW_NAME)
-        front_delx = cv2.getTrackbarPos("front del Cx", WINDOW_NAME) - 500
-        front_dely = cv2.getTrackbarPos("front del Cy", WINDOW_NAME) - 500
+        rear_aperture = cv2.getTrackbarPos("rear aperture", TRACKBAR_WINDOW)
+        rear_delx = cv2.getTrackbarPos("rear del Cx", TRACKBAR_WINDOW) - 500
+        rear_dely = cv2.getTrackbarPos("rear del Cy", TRACKBAR_WINDOW) - 500
+        rotation_x = (cv2.getTrackbarPos("rear rotation x", TRACKBAR_WINDOW) - 50) / 10
+        rotation_y = (cv2.getTrackbarPos("rear rotation y", TRACKBAR_WINDOW) - 50) / 10
+        rotation_z = (cv2.getTrackbarPos("rear rotation z", TRACKBAR_WINDOW) - 50) / 10
 
-        frame2 = process_parameters_2(
+        front_aperture = cv2.getTrackbarPos("front aperture", TRACKBAR_WINDOW)
+        front_delx = cv2.getTrackbarPos("front del Cx", TRACKBAR_WINDOW) - 500
+        front_dely = cv2.getTrackbarPos("front del Cy", TRACKBAR_WINDOW) - 500
+        front_rotation_x = (
+            cv2.getTrackbarPos("front rotation x", TRACKBAR_WINDOW) - 50
+        ) / 10
+        front_rotation_y = (
+            cv2.getTrackbarPos("front rotation y", TRACKBAR_WINDOW) - 50
+        ) / 10
+        front_rotation_z = (
+            cv2.getTrackbarPos("front rotation z", TRACKBAR_WINDOW) - 50
+        ) / 10
+
+        frame2 = process_parameters(
             REAR_RADIUS,
             rear_delx,
             rear_dely,
             rear_aperture,
-            rotation_y,
+            (rotation_x, rotation_y, rotation_z),
             FRONT_RADIUS,
             front_delx,
             front_dely,
             front_aperture,
+            (front_rotation_x, front_rotation_y, front_rotation_z),
             outShape,
         )
 
@@ -177,7 +201,7 @@ while True:
             (0, 180, 0),
             1,
         )
-        cv2.imshow(WINDOW_NAME, frame2)
+        cv2.imshow(IMAGE_WINDOW, frame2)
         if cv2.waitKey(1) & 0xFF == 27:
             with open("./rear_cam_params.txt", "w") as f:
                 f.write(str(REAR_RADIUS) + "\n")

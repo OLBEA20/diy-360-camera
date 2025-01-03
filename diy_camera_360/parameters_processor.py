@@ -11,10 +11,12 @@ from camera360.mean_square_error import mean_square_error
 
 from camera360.multi_processing.task import ResultTask, Task, TaskStatus
 
-#REAR_IMAGE_PATH = "./data/scene1/cam0_clean/test00735.jpeg"
-#FRONT_IMAGE_PATH = "./data/scene1/cam1_clean/test00735.jpeg"
-REAR_IMAGE_PATH = "./data/scene4/cam0_clean/test00208.jpeg"
-FRONT_IMAGE_PATH = "./data/scene4/cam1_clean/test00208.jpeg"
+# REAR_IMAGE_PATH = "./data/scene1/cam0_clean/test00735.jpeg"
+# FRONT_IMAGE_PATH = "./data/scene1/cam1_clean/test00735.jpeg"
+# REAR_IMAGE_PATH = "./data/scene4/cam0_clean/test00208.jpeg"
+# FRONT_IMAGE_PATH = "./data/scene4/cam1_clean/test00208.jpeg"
+REAR_IMAGE_PATH = "./data/imx477/scene1/cam0_clean/frame_00358.jpg"
+FRONT_IMAGE_PATH = "./data/imx477/scene1/cam1_clean/frame_00358.jpg"
 
 
 class ParametersProcessor:
@@ -56,10 +58,8 @@ class ParametersProcessor:
         print(f"Worker {process_id} stopped")
 
     def _process_parameters(self, del_x, del_y, aperture, rotation_y):
-        cam0_mapper = FishEyeToEquirectConverter(
-            1050, 199, 4, -10, -2.25
-        )
-        cam1_mapper = FishEyeToEquirectConverter(1050, aperture, del_x, del_y, rotation_y)
+        cam0_mapper = FishEyeToEquirectConverter(1510, 190, -5, 3, (0, -1, 0))
+        cam1_mapper = FishEyeToEquirectConverter(1510, 189, -10, -10, (0, 0.25, 0))
 
         fisheye_image = cv2.imread(REAR_IMAGE_PATH)
         rear_equirect_image = cam0_mapper.fisheye_to_equirectangular(

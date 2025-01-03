@@ -5,18 +5,18 @@ import cv2
 from camera360.remove_outer_noise import remove_outer_noise
 
 
-REAR_CAMERA_IMAGES_PATH = "./data/imx477/scene1/cam0"
-FRONT_CAMERA_IMAGES_PATH = "./data/imx477/scene1/cam1"
+REAR_CAMERA_IMAGES_PATH = "./data/imx477/scene2/cam0"
+FRONT_CAMERA_IMAGES_PATH = "./data/imx477/scene2/cam1"
 
-REAR_CAMERA_IMAGES_OUT_PATH = "./data/imx477/scene1/cam0_clean"
-FRONT_CAMERA_IMAGES_OUT_PATH = "./data/imx477/scene1/cam1_clean"
+REAR_CAMERA_IMAGES_OUT_PATH = "./data/imx477/scene2/cam0_clean"
+FRONT_CAMERA_IMAGES_OUT_PATH = "./data/imx477/scene2/cam1_clean"
 
 radius = 1510
-rear_image_center_x = 2018
-rear_image_center_y = 1562
+rear_image_center_x = 1954
+rear_image_center_y = 1575
 
-front_image_center_x = 1950
-front_image_center_y = 1566
+front_image_center_x = 2012
+front_image_center_y = 1560
 
 if __name__ == "__main__":
     os.makedirs(REAR_CAMERA_IMAGES_OUT_PATH)

@@ -18,5 +18,6 @@ calib/
 *.mp4_original
 *.jpeg
 *.jpg
+*.png
 *.txt
 omnicv

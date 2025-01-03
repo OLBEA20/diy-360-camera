@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "360camera"
+name = "diy-camera-360"
 version = "0.1.0"
 description = ""
 authors = ["Olivier Beaulieu <olivier.beaulieu@can-explore.com>"]

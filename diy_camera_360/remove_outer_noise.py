@@ -21,7 +21,7 @@ def get_annulus_filter_image(
 ) -> np.ndarray:
     annulus_image = create_image(image_height, image_width, CV2_BLACK)
 
-    center_x, center_y =center
+    center_x, center_y = center
     annulus_image = cv2.circle(
         annulus_image, (center_x, center_y), radius, CV2_WHITE, CV2_FILLED
     )
