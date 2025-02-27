@@ -1,10 +1,11 @@
 #!/usr/bin/env/python
 import cv2
 import sys
-from camera360.fisheye_to_equirect_converter import (
+from diy_camera_360.fisheye_to_equirect_converter import (
+    CameraParameters,
     FishEyeToEquirectConverter,
 )
-from camera360.swap_image_halves import swap_image_halves
+from diy_camera_360.swap_image_halves import swap_image_halves
 import numpy as np
 
 
@@ -32,7 +33,13 @@ def process_parameters(
     fisheye_image = cv2.imread(rear_image_path)
 
     cam0_mapper = FishEyeToEquirectConverter(
-        rear_radius, rear_aperture, rear_del_x, rear_del_y, rear_rotation
+        rear_radius,
+        CameraParameters(
+            aperture=rear_aperture,
+            del_x=rear_del_x,
+            del_y=rear_del_y,
+            rotation=rear_rotation,
+        ),
     )
     rear_equirect_image = cam0_mapper.fisheye_to_equirectangular(
         fisheye_image,
@@ -41,7 +48,13 @@ def process_parameters(
 
     fisheye_image = cv2.imread(front_image_path)
     cam1_mapper = FishEyeToEquirectConverter(
-        front_radius, front_aperture, front_del_x, front_del_y, front_rotation
+        front_radius,
+        CameraParameters(
+            aperture=front_aperture,
+            del_x=front_del_x,
+            del_y=front_del_y,
+            rotation=front_rotation,
+        ),
     )
     front_equirect_image = swap_image_halves(
         cam1_mapper.fisheye_to_equirectangular(

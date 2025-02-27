@@ -4,12 +4,11 @@ from tempfile import TemporaryDirectory
 import time
 import os
 
-from matplotlib import pyplot as plt
-from camera360.image_processor import ImageProcessorFactory
-from camera360.multi_processing.task import TaskStatus
-from camera360.multi_processing.task_queue import TaskQueue
+from diy_camera_360.image_processor import ImageProcessorFactory
+from diy_camera_360.multi_processing.task import TaskStatus
+from diy_camera_360.multi_processing.task_queue import TaskQueue
 
-scene_name = "scene2"
+scene_name = "scene6"
 
 REAR_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam0_clean"
 FRONT_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam1_clean"
@@ -78,8 +77,10 @@ if __name__ == "__main__":
 
         finally:
             queue.stop()
-        
-        print([t.result[1] for t in sorted(successful_tasks, key=lambda t: t.result[0])])
+
+        print(
+            [t.result[1] for t in sorted(successful_tasks, key=lambda t: t.result[0])]
+        )
 
         print("Merge image into video...")
         command = [

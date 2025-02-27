@@ -4,12 +4,12 @@ from queue import Empty
 import traceback
 import cv2
 import numpy as np
-from camera360.fisheye_to_equirect_converter import (
+from diy_camera_360.fisheye_to_equirect_converter import (
     FishEyeToEquirectConverter,
 )
-from camera360.mean_square_error import mean_square_error
+from diy_camera_360.mean_square_error import mean_square_error
 
-from camera360.multi_processing.task import ResultTask, Task, TaskStatus
+from diy_camera_360.multi_processing.task import ResultTask, Task, TaskStatus
 
 # REAR_IMAGE_PATH = "./data/scene1/cam0_clean/test00735.jpeg"
 # FRONT_IMAGE_PATH = "./data/scene1/cam1_clean/test00735.jpeg"

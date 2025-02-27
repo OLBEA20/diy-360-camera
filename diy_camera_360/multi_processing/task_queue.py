@@ -4,8 +4,8 @@ import signal
 from typing import Dict, List, Optional
 import sys
 
-from camera360.multi_processing.processor_factory import ProcessorFactory
-from camera360.multi_processing.task import I, Task, TaskStatus
+from diy_camera_360.multi_processing.processor_factory import ProcessorFactory
+from diy_camera_360.multi_processing.task import I, Task, TaskStatus
 
 
 class TaskQueue:

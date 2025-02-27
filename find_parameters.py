@@ -1,5 +1,4 @@
 from __future__ import annotations
-from dataclasses import dataclass
 from datetime import datetime
 from multiprocessing import Queue
 from queue import Empty
@@ -7,31 +6,34 @@ import random
 from statistics import mean
 import time
 import traceback
-from typing import Callable, Protocol
+from typing import Callable
 import cv2
 import numpy as np
-from camera360.blend_image_with_mask import blend_images_with_mask
-from camera360.fisheye_to_equirect_converter import CameraParameters, FishEyeToEquirectConverter
-from camera360.horizontal_fade import fade_horizontal_edges
-from camera360.mean_square_error import mean_square_error
-from camera360.multi_processing.task import ResultTask, Task, TaskStatus
-from camera360.multi_processing.task_queue import TaskQueue
-from camera360.swap_image_halves import swap_image_halves
+from diy_camera_360.fisheye_to_equirect_converter import (
+    CameraParameters,
+    FishEyeToEquirectConverter,
+)
+from diy_camera_360.horizontal_fade import fade_horizontal_edges
+from diy_camera_360.mean_square_error import mean_square_error
+from diy_camera_360.multi_processing.task import ResultTask, Task, TaskStatus
+from diy_camera_360.multi_processing.task_queue import TaskQueue
+from diy_camera_360.swap_image_halves import swap_image_halves
 
-REAR_IMAGE_PATH = "./data/imx477/scene2/cam0_clean/frame_00214.jpg"
+REAR_IMAGE_PATH = "./data/imx477/scene6/cam0_clean/frame_00248.jpg"
 CAM0_FISHEYE_IMAGE = cv2.imread(REAR_IMAGE_PATH)
 
-FRONT_IMAGE_PATH = "./data/imx477/scene2/cam1_clean/frame_00214.jpg"
+FRONT_IMAGE_PATH = "./data/imx477/scene6/cam1_clean/frame_00248.jpg"
 CAM1_FISHEYE_IMAGE = cv2.imread(FRONT_IMAGE_PATH)
 
-RADIUS = 1510
+REAR_RADIUS = 1430
+FRONT_RADIUS = 1510
 
 
 def process_parameters(
     cam0_parameters: CameraParameters, cam1_parameters: CameraParameters
 ):
-    cam0_mapper = FishEyeToEquirectConverter(RADIUS, cam0_parameters)
-    cam1_mapper = FishEyeToEquirectConverter(RADIUS, cam1_parameters)
+    cam0_mapper = FishEyeToEquirectConverter(REAR_RADIUS, cam0_parameters)
+    cam1_mapper = FishEyeToEquirectConverter(FRONT_RADIUS, cam1_parameters)
 
     rear_equirect_image = cam0_mapper.fisheye_to_equirectangular(
         CAM0_FISHEYE_IMAGE, out_shape=(960, 1920)
@@ -46,7 +48,7 @@ def process_parameters(
     right_left = 1430
     right_right = 1450
 
-    vertical_height = 530
+    vertical_height = 700
 
     left = np.hstack(
         (
@@ -187,8 +189,8 @@ def print_calibration_image(
     cam1_params: CameraParameters,
     destination_file_path: str,
 ):
-    cam0_mapper = FishEyeToEquirectConverter(RADIUS, cam0_params)
-    cam1_mapper = FishEyeToEquirectConverter(RADIUS, cam1_params)
+    cam0_mapper = FishEyeToEquirectConverter(REAR_RADIUS, cam0_params)
+    cam1_mapper = FishEyeToEquirectConverter(FRONT_RADIUS, cam1_params)
 
     fisheye_image = cv2.imread(REAR_IMAGE_PATH)
     rear_equirect_image = fade_horizontal_edges(
@@ -200,7 +202,9 @@ def print_calibration_image(
         cam1_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080))
     )
 
-    merged = np.clip(rear_equirect_image + swap_image_halves(front_equirect_image), 0, 255).astype(np.uint8)
+    merged = np.clip(
+        rear_equirect_image + swap_image_halves(front_equirect_image), 0, 255
+    ).astype(np.uint8)
 
     cv2.imwrite(destination_file_path, merged)
 
@@ -414,9 +418,9 @@ if __name__ == "__main__":
         task_id = 0
         for iteration in range(20):
             initial_cam0_param = CameraParameters(
-                185,
+                235,
                 random.randint(-10, 10),
-                random.randint(-20, 0),
+                random.randint(-60, -40),
                 (
                     round(random.uniform(-2.5, 2.5), 2),
                     round(random.uniform(-2.5, 2.5), 2),
@@ -426,7 +430,7 @@ if __name__ == "__main__":
             initial_cam1_param = CameraParameters(
                 185,
                 random.randint(-10, 10),
-                random.randint(-20, 0),
+                random.randint(-40, -20),
                 (
                     round(random.uniform(-2.5, 2.5), 2),
                     round(random.uniform(-2.5, 2.5), 2),
@@ -480,8 +484,6 @@ if __name__ == "__main__":
         print(f"Mean duration: {average_duration:.2f}s")
         print(f"Iterations: {iterations_sum}")
         print(20 * "-")
-
-
 
     finally:
         queue.stop()
