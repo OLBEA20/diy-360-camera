@@ -19,14 +19,26 @@ from diy_camera_360.multi_processing.task import ResultTask, Task, TaskStatus
 from diy_camera_360.multi_processing.task_queue import TaskQueue
 from diy_camera_360.swap_image_halves import swap_image_halves
 
-REAR_IMAGE_PATH = "./data/imx477/scene6/cam0_clean/frame_00248.jpg"
+REAR_IMAGE_PATH = "./data/imx477/scene10/cam0_clean/frame_00200.jpg"
+# REAR_IMAGE_PATH = "./data/gopro/scene2/cam0_clean/frame_00665.jpg"
 CAM0_FISHEYE_IMAGE = cv2.imread(REAR_IMAGE_PATH)
 
-FRONT_IMAGE_PATH = "./data/imx477/scene6/cam1_clean/frame_00248.jpg"
+FRONT_IMAGE_PATH = "./data/imx477/scene10/cam1_clean/frame_00200.jpg"
+# FRONT_IMAGE_PATH = "./data/gopro/scene2/cam1_clean/frame_00665.jpg"
 CAM1_FISHEYE_IMAGE = cv2.imread(FRONT_IMAGE_PATH)
 
 REAR_RADIUS = 1430
-FRONT_RADIUS = 1510
+FRONT_RADIUS = 1430
+
+# REAR_RADIUS = 352
+# FRONT_RADIUS = 352
+
+OUT_WIDTH = 1920
+OUT_HEIGHT = 960
+# OUT_WIDTH = 1408
+# OUT_HEIGHT = 704
+
+OVERLAP_PIXELS = int(4 / 360 * OUT_WIDTH)
 
 
 def process_parameters(
@@ -36,32 +48,46 @@ def process_parameters(
     cam1_mapper = FishEyeToEquirectConverter(FRONT_RADIUS, cam1_parameters)
 
     rear_equirect_image = cam0_mapper.fisheye_to_equirectangular(
-        CAM0_FISHEYE_IMAGE, out_shape=(960, 1920)
+        CAM0_FISHEYE_IMAGE, out_shape=(OUT_HEIGHT, OUT_WIDTH)
     )
     front_equirect_image = cam1_mapper.fisheye_to_equirectangular(
-        CAM1_FISHEYE_IMAGE, out_shape=(960, 1920)
+        CAM1_FISHEYE_IMAGE, out_shape=(OUT_HEIGHT, OUT_WIDTH)
     )
 
-    left_left = 470
-    left_right = 490
+    left_left = 450
+    left_right = 510
 
-    right_left = 1430
-    right_right = 1450
+    right_left = 1410
+    right_right = 1470
 
-    vertical_height = 700
+    vertical_height = int(0.8 * OUT_HEIGHT)
 
+    # left = np.hstack(
+    #    (
+    #        rear_equirect_image[0:vertical_height, left_left:left_right],
+    #        rear_equirect_image[0:vertical_height, right_left:right_right],
+    #    )
+    # )
+    # right = np.hstack(
+    #    (
+    #        front_equirect_image[0:vertical_height, right_left:right_right],
+    #        front_equirect_image[0:vertical_height, left_left:left_right],
+    #    )
+    # )
     left = np.hstack(
         (
-            rear_equirect_image[0:vertical_height, left_left:left_right],
-            rear_equirect_image[0:vertical_height, right_left:right_right],
+            rear_equirect_image[0:vertical_height, 406:446],
+            rear_equirect_image[0:vertical_height, 1473:1513],
         )
     )
     right = np.hstack(
         (
-            front_equirect_image[0:vertical_height, right_left:right_right],
-            front_equirect_image[0:vertical_height, left_left:left_right],
+            front_equirect_image[0:vertical_height, 1366:1406],
+            front_equirect_image[0:vertical_height, 513:553],
         )
     )
+
+    # cv2.imwrite("overlap.png", np.vstack((left, right)))
 
     return mean_square_error(left, right)
 
@@ -194,12 +220,18 @@ def print_calibration_image(
 
     fisheye_image = cv2.imread(REAR_IMAGE_PATH)
     rear_equirect_image = fade_horizontal_edges(
-        cam0_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080))
+        cam0_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080)),
+        3.75,
+        80,
+        280,
     )
 
     fisheye_image = cv2.imread(FRONT_IMAGE_PATH)
     front_equirect_image = fade_horizontal_edges(
-        cam1_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080))
+        cam1_mapper.fisheye_to_equirectangular(fisheye_image, (3040, 6080)),
+        3.75,
+        100,
+        260,
     )
 
     merged = np.clip(
@@ -388,14 +420,16 @@ class ParametersProcessor:
         for optimizer in self._optimizers:
             optimizer.iterations = 0
 
-        while last_score < best_score:
-            best_score = last_score
-            for optimizer in self._optimizers:
-                cam0_param, cam1_param, last_score = optimizer.optimize(
-                    last_score,
-                    cam0_param,
-                    cam1_param,
-                )
+        with open(f"data/logs/{task_id}.txt", "w") as log_file:
+            while last_score < best_score:
+                best_score = last_score
+                for optimizer in self._optimizers:
+                    cam0_param, cam1_param, last_score = optimizer.optimize(
+                        last_score,
+                        cam0_param,
+                        cam1_param,
+                    )
+                    log_file.write(f"{last_score} {cam0_param} {cam1_param}\n")
 
         print_calibration_image(
             cam0_param,
@@ -417,10 +451,11 @@ if __name__ == "__main__":
     try:
         task_id = 0
         for iteration in range(20):
+            initial_aperture = random.randint(208, 218)
             initial_cam0_param = CameraParameters(
-                235,
+                initial_aperture,
                 random.randint(-10, 10),
-                random.randint(-60, -40),
+                random.randint(-10, -10),
                 (
                     round(random.uniform(-2.5, 2.5), 2),
                     round(random.uniform(-2.5, 2.5), 2),
@@ -428,9 +463,9 @@ if __name__ == "__main__":
                 ),
             )
             initial_cam1_param = CameraParameters(
-                185,
+                initial_aperture,
                 random.randint(-10, 10),
-                random.randint(-40, -20),
+                random.randint(-10, 10),
                 (
                     round(random.uniform(-2.5, 2.5), 2),
                     round(random.uniform(-2.5, 2.5), 2),

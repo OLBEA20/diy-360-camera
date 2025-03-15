@@ -21,15 +21,36 @@ class ImageProcessor:
         # cam1_params = CameraParameters(aperture=183.9, del_x=4, del_y=-2, rotation=(4.46, -0.8, -0.09))
         # cam0_params = CameraParameters(aperture=185.4, del_x=45, del_y=-25, rotation=(2.44, -1.05, -2.36))
         # cam1_params = CameraParameters(aperture=185.9, del_x=-64, del_y=-13, rotation=(3.31, -0.17, 3.08))
+        # cam0_params = CameraParameters(
+        #    aperture=187.6, del_x=11, del_y=-40, rotation=(0.94, -0.42, -1.04)
+        # )
+        # cam1_params = CameraParameters(
+        #    aperture=185.7, del_x=-11, del_y=-26, rotation=(1.77, 0.4, 0.32)
+        # )
+        # cam0_params = CameraParameters(
+        #    aperture=186.9, del_x=-5, del_y=-6, rotation=(-1.78, 0.6, 0.36)
+        # )
+        # cam1_params = CameraParameters(
+        #    aperture=187.1, del_x=0, del_y=-6, rotation=(-2.38, -0.68, -1.2)
+        # )
         cam0_params = CameraParameters(
-            aperture=187.6, del_x=11, del_y=-40, rotation=(0.94, -0.42, -1.04)
+            aperture=218.4, del_x=33, del_y=41, rotation=(9.89, -3.49, -1.51)
         )
         cam1_params = CameraParameters(
-            aperture=185.7, del_x=-11, del_y=-26, rotation=(1.77, 0.4, 0.32)
+            aperture=201.5, del_x=-55, del_y=29, rotation=(-3.66, 3.47, 4.41)
+        )
+        cam0_params = CameraParameters(
+            aperture=235, del_x=15, del_y=-7, rotation=(1.38, -7.61, -4.73)
+        )
+        cam1_params = CameraParameters(
+            aperture=184.2, del_x=-44, del_y=-24, rotation=(-2.16, 7.68, -0.17)
         )
 
-        self._cam0_mapper = FishEyeToEquirectConverter(1510, cam0_params)
-        self._cam1_mapper = FishEyeToEquirectConverter(1510, cam1_params)
+        # self._cam0_mapper = FishEyeToEquirectConverter(1510, cam0_params)
+        # self._cam1_mapper = FishEyeToEquirectConverter(1510, cam1_params)
+
+        self._cam0_mapper = FishEyeToEquirectConverter(1430, cam0_params)
+        self._cam1_mapper = FishEyeToEquirectConverter(1430, cam1_params)
 
         self._task_queue = task_queue
         self._result_queue = result_queue
@@ -103,10 +124,29 @@ class ImageProcessor:
                 front_equirect_image[0:vertical_height, left_left:left_right],
             )
         )
+        left = np.hstack(
+            (
+                rear_equirect_image[0:vertical_height, 406:446],
+                rear_equirect_image[0:vertical_height, 1473:1513],
+            )
+        )
+        right = np.hstack(
+            (
+                front_equirect_image[0:vertical_height, 1366:1406],
+                front_equirect_image[0:vertical_height, 513:553],
+            )
+        )
 
         merged = np.clip(
-            fade_horizontal_edges(rear_equirect_image)
-            + swap_image_halves(fade_horizontal_edges(front_equirect_image)),
+            fade_horizontal_edges(
+                rear_equirect_image,
+                3.75,
+                80,
+                280,
+            )
+            + swap_image_halves(
+                fade_horizontal_edges(front_equirect_image, 3.75, 100, 260)
+            ),
             0,
             255,
         ).astype(np.uint8)

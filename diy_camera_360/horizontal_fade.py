@@ -1,24 +1,27 @@
 import cv2
 import numpy as np
 
-def fade_horizontal_edges(image, fade_angle=3.75):
+
+def fade_horizontal_edges(
+    image, fade_angle=3.75, left_angle: int = 90, right_angle: int = 270
+):
     height, width, _ = image.shape
     fade_width = round((fade_angle / 360) * width)
 
     fade_mask = np.ones((height, width), dtype=float)
 
-    left = round((90 / 360) * width - fade_width / 2)
+    left = round((left_angle / 360) * width - fade_width / 2)
     for x in range(left, left + fade_width + 1):
         fade_value = (x - left) / fade_width
-        fade_mask[:, x] *= fade_value + (1/fade_width)
+        fade_mask[:, x] *= fade_value + (1 / fade_width)
 
     for x in range(0, left):
         fade_mask[:, x] *= 0
 
-    right = round((270 / 360) * width - fade_width / 2)
+    right = round((right_angle / 360) * width - fade_width / 2)
     for x in range(right - 1, right + fade_width):
         fade_value = (right + fade_width - x - 1) / fade_width
-        fade_mask[:, x] *= fade_value + (1/fade_width)
+        fade_mask[:, x] *= fade_value + (1 / fade_width)
 
     for x in range(right + fade_width, width):
         fade_mask[:, x] *= 0
@@ -44,7 +47,7 @@ def fade_horizontal_edges_2(image, fade_angle=3.75):
     for x in range(0, left):
         fade_mask[:, x] *= 0
 
-    right = round((270 / 360) * width - fade_width / 2) 
+    right = round((270 / 360) * width - fade_width / 2)
     for x in range(right, right + fade_width):
         fade_value = ((right + fade_width) - x - 1) / fade_width
         fade_mask[:, x] *= fade_value

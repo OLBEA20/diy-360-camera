@@ -1,4 +1,5 @@
 #!/usr/bin/env/python
+import time
 import cv2
 import sys
 from diy_camera_360.fisheye_to_equirect_converter import (
@@ -45,6 +46,7 @@ def process_parameters(
         fisheye_image,
         out_shape,
     )
+    return rear_equirect_image
 
     fisheye_image = cv2.imread(front_image_path)
     cam1_mapper = FishEyeToEquirectConverter(
@@ -63,7 +65,7 @@ def process_parameters(
         )
     )
 
-    return hard_merge(rear_equirect_image, front_equirect_image)
+    return rear_equirect_image + front_equirect_image
 
 
 def nothing(x):
@@ -214,6 +216,87 @@ while True:
             (0, 180, 0),
             1,
         )
+
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        int(frame2.shape[1] * (62.5 / 360)) + 20,
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (62.5 / 360)) + 20,
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        0,
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (62.5 / 360)) + 20,
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        0,
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (62.5 / 360)) + 20,
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        int(frame2.shape[1] * (297.5 / 360)) - 20,
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (297.5 / 360)) - 20,
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        frame2.shape[1],
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (297.5 / 360)) - 20,
+        #        int((27.5 / 90) * frame2.shape[0] / 2) - 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+        # frame2 = cv2.line(
+        #    frame2,
+        #    (
+        #        frame2.shape[1],
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (
+        #        int(frame2.shape[1] * (297.5 / 360)) - 20,
+        #        int(frame2.shape[0] / 2) + int((62.5 / 90) * frame2.shape[0] / 2) + 20,
+        #    ),
+        #    (180, 180, 180),
+        #    40,
+        # )
+
         cv2.imshow(IMAGE_WINDOW, frame2)
         if cv2.waitKey(1) & 0xFF == 27:
             with open("./rear_cam_params.txt", "w") as f:

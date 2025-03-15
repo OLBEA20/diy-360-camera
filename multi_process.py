@@ -8,10 +8,12 @@ from diy_camera_360.image_processor import ImageProcessorFactory
 from diy_camera_360.multi_processing.task import TaskStatus
 from diy_camera_360.multi_processing.task_queue import TaskQueue
 
-scene_name = "scene6"
+scene_name = "scene10"
 
 REAR_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam0_clean"
 FRONT_CAMERA_IMAGES_PATH = f"./data/imx477/{scene_name}/cam1_clean"
+# REAR_CAMERA_IMAGES_PATH = f"./data/gopro/{scene_name}/cam0_clean"
+# FRONT_CAMERA_IMAGES_PATH = f"./data/gopro/{scene_name}/cam1_clean"
 
 # Example usage
 if __name__ == "__main__":
